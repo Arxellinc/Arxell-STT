@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arxell Speak</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-identity">
+        <button id="history-toggle" class="header-icon-button" type="button" aria-label="Show transcription history" title="Hide history" aria-pressed="true" aria-controls="history-panel">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 5v5h5M4.5 10a8.5 8.5 0 1 1-.4 5.5M12 7.5V12l3 2"/>
+          </svg>
+        </button>
+        <span id="loaded-model">No model loaded</span>
+      </div>
+      <span id="state-label" class="status-light warn" role="status" aria-live="polite" aria-label="Starting" title="Starting">
+        <span id="state-text" class="sr-only">Starting</span>
+      </span>
+      <button id="settings-toggle" class="header-icon-button" aria-label="Settings" aria-expanded="false" title="Settings">⚙</button>
+    </header>
+    <section id="setup-panel" class="setup-panel" aria-label="Required setup" aria-live="polite" hidden>
+      <span id="setup-message"></span>
+      <button id="setup-permissions" type="button" disabled>Retry setup</button>
+    </section>
+    <main>
+      <section id="dictation" aria-label="Dictation">
+        <section id="history-panel" aria-label="Transcription history">
+          <button id="history-more" type="button" hidden>Show older transcriptions</button>
+          <div id="history-list"></div>
+        </section>
+        <div class="transcript-bubble active-transcript">
+          <time id="timestamp" class="muted"></time>
+          <div class="transcript-body">
+            <textarea id="transcript-text" aria-label="Editable transcript" placeholder="Start dictation. Your words will appear here." rows="4" spellcheck="true"></textarea>
+            <div class="transcript-actions">
+              <button id="resume" class="icon-button resume-button" type="button" aria-label="Resume dictation" title="Resume dictation" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path fill="currentColor" d="M8.5 6.2v11.6a1 1 0 0 0 1.52.85l9.2-5.8a1 1 0 0 0 0-1.7l-9.2-5.8a1 1 0 0 0-1.52.85Z"/>
+                </svg>
+              </button>
+              <button id="save" class="icon-button" type="button" aria-label="Save transcript to file" title="Save to file" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M5 4.5h10.2L19.5 8.8V19a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5Zm2.8 0v5h7v-5M8 19.5v-5.8h8v5.8"/>
+                </svg>
+              </button>
+              <button id="copy" class="icon-button" type="button" aria-label="Copy transcript" title="Copy" disabled>
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M9 8.5V6.7c0-.9.7-1.7 1.7-1.7h6.6c.9 0 1.7.7 1.7 1.7v6.6c0 .9-.7 1.7-1.7 1.7h-1.8M6.7 9h6.6c.9 0 1.7.7 1.7 1.7v6.6c0 .9-.7 1.7-1.7 1.7H6.7c-.9 0-1.7-.7-1.7-1.7v-6.6C5 9.7 5.8 9 6.7 9Z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="record-row">
+          <button id="dictate" class="record" type="button" aria-label="Start dictation" title="Start dictation" aria-pressed="false" disabled>
+            <svg viewBox="0 0 512 512" width="40" height="40" aria-hidden="true">
+              <defs>
+                <linearGradient id="record-bg" x1="0" y1="0" x2="52" y2="512" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#A354CC"/><stop offset=".4" stop-color="#9746C3"/><stop offset=".8" stop-color="#8137B6"/><stop offset="1" stop-color="#742EB3"/>
+                </linearGradient>
+                <linearGradient id="record-bg-idle" x1="0" y1="0" x2="52" y2="512" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#9B9B9B"/><stop offset=".4" stop-color="#8E8E8E"/><stop offset=".8" stop-color="#7C7C7C"/><stop offset="1" stop-color="#707070"/>
+                </linearGradient>
+                <linearGradient id="record-mic" x1="200" y1="68" x2="312" y2="256" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="white"/><stop offset=".5" stop-color="#FFF8FF"/><stop offset="1" stop-color="#D6B8E5"/>
+                </linearGradient>
+                <linearGradient id="record-stand" x1="172" y1="216" x2="276" y2="452" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="white"/><stop offset=".5" stop-color="#FFF8FF"/><stop offset="1" stop-color="#D6B8E5"/>
+                </linearGradient>
+              </defs>
+              <path class="record-shell" fill="#A354CC" d="M132 0H384C456 0 512 60 512 128V384C512 456 456 512 384 512H132C58 512 0 456 0 384V128C0 60 60 0 132 0Z"/>
+              <path class="record-fill" fill="url(#record-bg)" d="M132 4H384C452 4 508 64 508 128V384C508 452 452 508 384 508H132C62 508 4 452 4 384V128C4 64 64 4 132 4Z"/>
+              <path fill="url(#record-mic)" d="M316 132C316 96 288 68 260 68C224 68 200 96 200 132V244C200 276 224 304 260 304C288 304 316 276 316 244V132Z"/>
+              <path d="M172 216V256C172 368 344 368 344 256V216M260 344V444M260 444H188M260 444H328" fill="none" stroke="url(#record-stand)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M116 188C88 224 88 280 116 316M74 152C30 208 32 292 76 352M396 188C428 224 428 280 396 316M440 152C484 208 484 292 440 352" fill="none" opacity=".5" stroke="white" stroke-width="16" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button id="cancel" class="link-button" type="button" hidden>Cancel</button>
+        </div>
+      </section>
+      <section id="settings" hidden aria-label="Settings">
+        <form id="settings-form">
+          <fieldset id="settings-fields">
+            <div id="settings-groups"></div>
+            <div class="settings-actions">
+              <button id="reset" type="button">Restore defaults</button>
+              <span id="settings-version" class="muted"></span>
+            </div>
+          </fieldset>
+        </form>
+      </section>
+    </main>
+    <footer>
+      <span id="message" role="status" aria-live="polite" hidden></span>
+      <span class="footer-right">
+        <span id="backend"></span>
+        <span id="shortcut-label"></span>
+      </span>
+    </footer>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

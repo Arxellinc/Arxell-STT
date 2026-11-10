@@ -1,0 +1,41 @@
+# Build output
+node_modules/
+dist/
+src-tauri/target/
+target/
+src-tauri/gen/
+*.deb
+*.rpm
+*.AppImage
+*.dmg
+*.msi
+*.exe
+references/**/*.tar.gz
+
+# Models and recordings
+*.gguf
+*.bin
+*.wav
+*.flac
+*.mp3
+!samples/*.wav
+# Deliberate regression fixtures only; never put personal recordings here.
+!tests/fixtures/*.wav
+
+# Local state
+.local/
+*.local
+.env
+.env.*
+*.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# Signing credentials and private keys must never enter the repository.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+.DS_Store

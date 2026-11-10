@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Arxell Speak
+Comment=Local speech-to-text dictation
+Exec=arxell-speak
+Icon=arxell-speak
+Terminal=false
+NoDisplay=true
+X-Arxell-Portal-Identity=true
+StartupWMClass=arxell-speak
+Categories=Utility;Accessibility;

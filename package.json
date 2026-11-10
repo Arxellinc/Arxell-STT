@@ -1,0 +1,14 @@
+{
+  "name": "arxell-speak",
+  "private": true,
+  "version": "0.1.2-rc.4",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

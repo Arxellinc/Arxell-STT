@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="52" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A354CC"/>
+      <stop offset=".4" stop-color="#9746C3"/>
+      <stop offset=".8" stop-color="#8137B6"/>
+      <stop offset="1" stop-color="#742EB3"/>
+    </linearGradient>
+    <linearGradient id="mic" x1="200" y1="68" x2="312" y2="256" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset=".5" stop-color="#FFF8FF"/>
+      <stop offset="1" stop-color="#D6B8E5"/>
+    </linearGradient>
+    <linearGradient id="stand" x1="172" y1="216" x2="276" y2="452" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset=".5" stop-color="#FFF8FF"/>
+      <stop offset="1" stop-color="#D6B8E5"/>
+    </linearGradient>
+  </defs>
+  <path fill="#A354CC" d="M132 0H384C456 0 512 60 512 128V384C512 456 456 512 384 512H132C58 512 0 456 0 384V128C0 60 60 0 132 0Z"/>
+  <path fill="url(#bg)" d="M132 4H384C452 4 508 64 508 128V384C508 452 452 508 384 508H132C62 508 4 452 4 384V128C4 64 64 4 132 4Z"/>
+  <path fill="url(#mic)" d="M316 132C316 96 288 68 260 68C224 68 200 96 200 132V244C200 276 224 304 260 304C288 304 316 276 316 244V132Z"/>
+  <path d="M172 216V256C172 368 344 368 344 256V216M260 344V444M260 444H188M260 444H328" fill="none" stroke="url(#stand)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M116 188C88 224 88 280 116 316M74 152C30 208 32 292 76 352M396 188C428 224 428 280 396 316M440 152C484 208 484 292 440 352" fill="none" opacity=".5" stroke="white" stroke-width="16" stroke-linecap="round"/>
+</svg>
