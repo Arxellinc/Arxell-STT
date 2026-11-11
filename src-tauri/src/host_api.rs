@@ -97,6 +97,7 @@ impl ApiServer {
                             );
                             if std::thread::Builder::new()
                                 .name("api-client".into())
+                                .stack_size(crate::engine::ENGINE_THREAD_STACK_BYTES)
                                 .spawn(move || {
                                     let _ = serve(socket, app, settings, stop, current);
                                     count.fetch_sub(1, Ordering::Relaxed);

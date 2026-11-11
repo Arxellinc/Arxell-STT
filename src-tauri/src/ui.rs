@@ -259,6 +259,7 @@ pub(crate) fn start_dictation_from(
     let (thread_abort, thread_running) = (abort.clone(), running.clone());
     let thread = std::thread::Builder::new()
         .name("dictation".into())
+        .stack_size(engine::ENGINE_THREAD_STACK_BYTES)
         .spawn(move || {
             live::run(
                 thread_app,

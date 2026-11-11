@@ -327,6 +327,7 @@ pub fn preload(app: &AppHandle) {
     let handle = app.clone();
     let spawned = std::thread::Builder::new()
         .name("model-preload".into())
+        .stack_size(crate::engine::ENGINE_THREAD_STACK_BYTES)
         .spawn(move || {
             let app = handle;
             let state = app.state::<AppState>();

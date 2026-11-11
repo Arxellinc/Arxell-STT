@@ -22,6 +22,13 @@ pub const DEFAULT_MODEL_SHA256: &str =
 pub const DEFAULT_MODEL_SIZE: u64 = 477_274_496;
 pub const DEFAULT_MODEL_PATH: &str = "models/parakeet-unified-en-0.6b-Q4_K_M.gguf";
 
+/// Stack reserve for threads that load or run the recognizer. Measured on
+/// real hardware: the engine overflows a 1 MiB stack (the Windows main
+/// thread default) and passes at 2 MiB; keep a generous margin instead of
+/// relying on platform defaults. Main-thread use additionally raises the PE
+/// reserve via `build.rs` on Windows.
+pub const ENGINE_THREAD_STACK_BYTES: usize = 8 * 1024 * 1024;
+
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, serde::Deserialize)]
 pub enum BackendPreference {
     #[default]
