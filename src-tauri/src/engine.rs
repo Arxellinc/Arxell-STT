@@ -438,7 +438,8 @@ mod tests {
         let path = std::env::temp_dir().join(format!(
             "arxell-sha-{}-{}.txt",
             std::process::id(),
-            std::thread::current().name().unwrap_or("test")
+            // Test thread names contain `::`, which is invalid in Windows filenames.
+            getrandom::u64().expect("random temp file suffix")
         ));
         std::fs::write(&path, b"abc").expect("write temp file");
 

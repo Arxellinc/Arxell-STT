@@ -33,13 +33,21 @@ pub fn consented() -> bool {
 
 /// The gate every X11 capture must pass before any key is synthesized.
 pub fn keyboard_allowed() -> Result<(), String> {
-    if !consented() {
+    check_keyboard_access(consented(), available)
+}
+
+// Keep policy tests independent of the process-wide consent flag and display.
+fn check_keyboard_access(
+    consent: bool,
+    xtest_available: impl FnOnce() -> bool,
+) -> Result<(), String> {
+    if !consent {
         return Err(
             "X11 sessions have no system keyboard permission. Enable 'X11 keyboard delivery' in Settings → Shortcuts & delivery before typing into other applications."
                 .into(),
         );
     }
-    if !available() {
+    if !xtest_available() {
         return Err(
             "This display does not provide the XTest keyboard extension; external typing is unavailable here."
                 .into(),
@@ -315,10 +323,11 @@ pub fn verify_focus(pid: u32) -> Result<(), String> {
 }
 
 pub fn type_character(c: char) -> Result<(), String> {
-    keyboard_allowed()?;
+    // Reject control characters without probing or connecting to a display.
     if c.is_control() {
         return Err("Control character refused.".into());
     }
+    keyboard_allowed()?;
     let keysym = keysym_for(c);
     with_session(|session| {
         let plan = plan_typing(keysym, &read_keymap(session)?);
@@ -446,30 +455,28 @@ mod tests {
 
     #[test]
     fn typing_requires_explicit_consent_and_refuses_control_characters() {
-        let before = consented();
-        set_consent(false);
-        let refused = type_character('a').unwrap_err();
+        let refused = check_keyboard_access(false, || {
+            panic!("Unconsented input must not probe the display")
+        })
+        .unwrap_err();
         assert!(refused.contains("X11 keyboard delivery"), "{refused}");
-        set_consent(true);
-        // Control characters are refused before any connection is opened, so
-        // this stays safe on machines without an X display.
-        let control = type_character('\n').unwrap_err();
-        assert!(control.contains("Control character refused"));
-        set_consent(before);
+        // These calls must not depend on consent or an available display, and
+        // must never synthesize input, even when other tests run in parallel.
+        for c in ['\n', '\r', '\t', '\u{1b}', '\0'] {
+            let control = type_character(c).unwrap_err();
+            assert!(control.contains("Control character refused"), "{control}");
+        }
     }
 
     #[test]
     fn capture_gate_names_the_setting_and_missing_extension() {
-        let before = consented();
-        set_consent(false);
-        assert!(keyboard_allowed().unwrap_err().contains("Settings"));
-        set_consent(true);
-        // On a machine with XTest the gate passes; without one it must name
-        // the extension rather than attempting to type.
-        match keyboard_allowed() {
-            Ok(()) => {}
-            Err(error) => assert!(error.contains("XTest"), "{error}"),
-        }
-        set_consent(before);
+        assert!(
+            check_keyboard_access(false, || true)
+                .unwrap_err()
+                .contains("Settings")
+        );
+        let unavailable = check_keyboard_access(true, || false).unwrap_err();
+        assert!(unavailable.contains("XTest"), "{unavailable}");
+        assert!(check_keyboard_access(true, || true).is_ok());
     }
 }
