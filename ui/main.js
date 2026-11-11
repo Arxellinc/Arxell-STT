@@ -415,7 +415,8 @@ function applyModelState(next, name) {
   loadedModel(name);
   modelState = next || "missing";
   if ((modelState === "missing" || modelState === "error") && !restartPending && !restartInProgress) {
-    message(modelState === "missing"
+    if (downloading) message("Downloading the speech model…"); // Progress lives in the setup panel.
+    else message(modelState === "missing"
       ? "No model loaded. Use Download or Verify in Settings."
       : "Model failed to load. Check the file path in Settings.", true);
     modelHint = true;

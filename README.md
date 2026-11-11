@@ -76,6 +76,12 @@ Default: `parakeet-unified-en-0.6b` Q4_K_M, 477 MB, Efficient streaming preset
 - Default local path:
   `models/parakeet-unified-en-0.6b-Q4_K_M.gguf` (the helper exports the absolute path)
 
+On first run the app downloads the curated default automatically (477 MB,
+resumable, SHA-256 verified before install) into its app-data directory;
+progress is shown in the setup panel and can be cancelled or retried. A
+user-chosen custom model path in Settings is never replaced by the automatic
+download.
+
 The app uses one model at a time. `Engine` probes the platform GPU, falls back to
 CPU once at load, and reports the actual backend/device. Advanced settings expose
 Auto / CPU only / GPU only.

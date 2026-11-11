@@ -517,22 +517,8 @@ pub fn new_api_token() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn download_model(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
-    let mut download = state
-        .download
-        .lock()
-        .map_err(|_| "download lock poisoned")?;
-    if download.as_ref().is_some_and(|d| !d.thread.is_finished()) {
-        return Err("model download already running".into());
-    }
-    let cancel = Arc::new(AtomicBool::new(false));
-    let worker_cancel = cancel.clone();
-    let thread = std::thread::Builder::new()
-        .name("model-download".into())
-        .spawn(move || crate::model_store::download(app, worker_cancel))
-        .map_err(|e| e.to_string())?;
-    *download = Some(crate::model_store::Download { cancel, thread });
-    Ok(())
+pub fn download_model(app: AppHandle) -> Result<(), String> {
+    crate::model_store::start(&app)
 }
 
 #[tauri::command]

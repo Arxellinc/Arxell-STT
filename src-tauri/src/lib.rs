@@ -71,6 +71,12 @@ pub fn run() {
             let x11_keyboard = settings.advanced.x11_keyboard_enabled;
             *state.settings.lock().map_err(|_| "settings lock poisoned")? = settings;
             crate::platform::set_x11_keyboard(x11_keyboard);
+            // First run with the curated default model: fetch it automatically
+            // so dictation works without a trip to Settings. A user-chosen
+            // custom model path is never replaced (see model_store::auto_fetch).
+            if let Err(error) = model_store::auto_fetch(handle) {
+                app::trace(format_args!("model auto-fetch not started: {error}"));
+            }
             // The app should normally never sit without a loaded model.
             live::preload(handle);
             let handle = handle.clone();

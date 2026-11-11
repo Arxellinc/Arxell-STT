@@ -119,7 +119,8 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 /* One fixed row below the header, showing outstanding requirements only. */
 .setup-panel { flex: none; display: flex; align-items: center; gap: 12px; padding: 6px 20px; border-bottom: 1px solid var(--line); background: var(--card); font-size: 12px; }
 #setup-message { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#setup-permissions { flex: none; font-size: 12px; }
+#setup-model { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#setup-permissions, #model-download-cancel, #model-download-retry { flex: none; font-size: 12px; }
 
 /* Settings groups: title left, advanced toggle right, rows in a rounded card. */
 .group { margin-bottom: 22px; }

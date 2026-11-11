@@ -71,6 +71,9 @@ pub fn download(app: AppHandle, cancel: Arc<AtomicBool>) {
             offset = 0;
         }
         if offset < DEFAULT_MODEL_SIZE {
+            // Immediate feedback for UI (and webview reloads): the first chunk
+            // event otherwise arrives up to 250 ms later.
+            progress(offset, "downloading", String::new());
             let client = reqwest::Client::builder()
                 .https_only(true)
                 .connect_timeout(Duration::from_secs(15))
@@ -161,5 +164,95 @@ pub fn download(app: AppHandle, cancel: Arc<AtomicBool>) {
             },
             message,
         ),
+    }
+}
+
+/// Start the curated-model download exactly once, whether the trigger was
+/// the first-run auto-fetch or the Settings button. Reuses the shared
+/// per-process guard so two triggers cannot spawn two writers.
+pub fn start(app: &AppHandle) -> Result<(), String> {
+    let state = app.state::<crate::app::AppState>();
+    let mut slot = state
+        .download
+        .lock()
+        .map_err(|_| "download lock poisoned")?;
+    if slot.as_ref().is_some_and(|d| !d.thread.is_finished()) {
+        return Err("model download already running".into());
+    }
+    let cancel = Arc::new(AtomicBool::new(false));
+    let worker_cancel = cancel.clone();
+    let handle = app.clone();
+    let thread = std::thread::Builder::new()
+        .name("model-download".into())
+        .spawn(move || download(handle, worker_cancel))
+        .map_err(|e| e.to_string())?;
+    *slot = Some(Download { cancel, thread });
+    Ok(())
+}
+
+/// Auto-fetch applies only while no custom model location was chosen: the
+/// configured path must be empty (nothing selected yet) or the curated
+/// default itself. Any other value is a user decision we never override.
+fn should_auto_fetch(configured: &str, default: &Path) -> bool {
+    let trimmed = configured.trim();
+    trimmed.is_empty() || Path::new(trimmed) == default
+}
+
+/// First-run convenience: when the configured model is the curated default
+/// (or unset) and no verified copy exists yet, fetch it automatically so the
+/// app becomes usable without visiting Settings. Errors surface through the
+/// normal download events; they never block startup.
+pub fn auto_fetch(app: &AppHandle) -> Result<bool, String> {
+    let default = default_path(app)?;
+    let configured = {
+        let state = app.state::<crate::app::AppState>();
+        state
+            .settings
+            .lock()
+            .map_err(|_| "settings lock poisoned")?
+            .model_path
+            .clone()
+    };
+    if !should_auto_fetch(&configured, &default) {
+        return Ok(false);
+    }
+    if verified(&default).is_ok() {
+        return Ok(false);
+    }
+    start(app)?;
+    crate::app::trace(format_args!(
+        "model auto-fetch started: curated model missing at {}",
+        default.display()
+    ));
+    Ok(true)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::should_auto_fetch;
+    use std::path::Path;
+
+    #[test]
+    fn auto_fetch_targets_only_the_default_location() {
+        let default = Path::new("/app-data/models/parakeet-unified-en-0.6b-Q4_K_M.gguf");
+        assert!(
+            should_auto_fetch("", default),
+            "unset model must auto-fetch"
+        );
+        assert!(should_auto_fetch("   ", default), "blank is unset");
+        assert!(
+            should_auto_fetch(default.to_str().unwrap(), default),
+            "the curated default path itself must auto-fetch"
+        );
+    }
+
+    #[test]
+    fn auto_fetch_never_overrides_a_custom_model_choice() {
+        let default = Path::new("/app-data/models/parakeet-unified-en-0.6b-Q4_K_M.gguf");
+        assert!(!should_auto_fetch("/mnt/big/model.gguf", default));
+        assert!(!should_auto_fetch(
+            "/app-data/models/some-other-model.gguf",
+            default
+        ));
     }
 }
