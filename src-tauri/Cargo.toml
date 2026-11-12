@@ -14,8 +14,6 @@ tauri-build = { version = "2", features = [] }
 
 [features]
 default = []
-vulkan = ["transcribe-cpp/vulkan"]
-metal = ["transcribe-cpp/metal"]
 
 [dependencies]
 tauri = { version = "2", features = [] }
@@ -30,11 +28,22 @@ tokio = { version = "1", features = ["time", "macros", "sync"] }
 tungstenite = { version = "0.28", default-features = false, features = ["handshake"] }
 getrandom = "0.3"
 tauri-plugin-global-shortcut = "2"
+# GPU acceleration is mandatory, not a feature toggle. The platform tables
+# below force Metal (macOS) and Vulkan (Linux/Windows) into EVERY build,
+# including `cargo build --no-default-features`; a CPU-only binary cannot be
+# produced. CPU remains a runtime fallback (BackendPreference::Auto) and a
+# manual setting, never a silently weaker build.
 transcribe-cpp = { git = "https://github.com/handy-computer/transcribe.cpp", tag = "v0.4.1", package = "transcribe-cpp", default-features = false }
 
 [dev-dependencies]
 hound = "3"
 tokio = { version = "1", features = ["test-util"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+transcribe-cpp = { git = "https://github.com/handy-computer/transcribe.cpp", tag = "v0.4.1", package = "transcribe-cpp", default-features = false, features = ["metal"] }
+
+[target.'cfg(any(target_os = "linux", target_os = "windows"))'.dependencies]
+transcribe-cpp = { git = "https://github.com/handy-computer/transcribe.cpp", tag = "v0.4.1", package = "transcribe-cpp", default-features = false, features = ["vulkan"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 zbus = { version = "5", default-features = false, features = ["blocking-api", "tokio"] }

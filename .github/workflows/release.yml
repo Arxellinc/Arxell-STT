@@ -14,13 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: ubuntu-22.04
-            args: "--features vulkan"
-          - platform: macos-latest
-            args: "--features metal"
-          - platform: windows-latest
-            args: ""
+        platform: [ubuntu-22.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +25,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri -> target
-      - name: Install Linux build dependencies
+      - name: Install Linux build dependencies (Vulkan toolchain included)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
@@ -50,6 +44,16 @@ jobs:
           echo "CMAKE_PREFIX_PATH=$HOME/spirv" >> "$GITHUB_ENV"
           echo "CPLUS_INCLUDE_PATH=$HOME/spirv/include" >> "$GITHUB_ENV"
           echo "C_INCLUDE_PATH=$HOME/spirv/include" >> "$GITHUB_ENV"
+      - name: Install Vulkan SDK (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          curl.exe -sL -o $env:TEMP\vulkan_sdk.exe https://sdk.lunarg.com/sdk/download/latest/windows/vulkan_sdk.exe
+          Start-Process -Wait -FilePath "$env:TEMP\vulkan_sdk.exe" -ArgumentList '--accept-licenses','--default','--root','C:\VulkanSDK'
+          $sdk = (Get-ChildItem C:\VulkanSDK | Sort-Object Name -Descending | Select-Object -First 1).FullName
+          if (-not $sdk) { throw "Vulkan SDK installation not found under C:\VulkanSDK" }
+          Add-Content $env:GITHUB_PATH "$sdk\Bin"
+          Add-Content $env:GITHUB_ENV "VULKAN_SDK=$sdk"
       - name: Install frontend tooling
         run: npm ci
       - name: Build and attach release assets
@@ -61,4 +65,3 @@ jobs:
           releaseName: "Arxell Speak ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}

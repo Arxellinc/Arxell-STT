@@ -192,7 +192,8 @@ fn main() -> Result<(), String> {
     let backend = if args.get(2).is_some_and(|s| s == "cpu") {
         Backend::Cpu
     } else {
-        Backend::Vulkan
+        arxell_speak_lib::engine::preferred_gpu()
+            .ok_or("no GPU backend compiled in or available for this platform")?
     };
     let mode = args.get(3).map(String::as_str).unwrap_or("sweep");
 

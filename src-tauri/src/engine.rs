@@ -78,7 +78,9 @@ fn ensure_backends() -> Result<(), String> {
         .clone()
 }
 
-fn preferred_gpu() -> Option<Backend> {
+/// Platform-appropriate GPU backend for this build, checked for availability.
+/// Public so example/bench harnesses share the app's exact selection logic.
+pub fn preferred_gpu() -> Option<Backend> {
     #[cfg(target_os = "linux")]
     {
         backend_available(Backend::Vulkan).then_some(Backend::Vulkan)
